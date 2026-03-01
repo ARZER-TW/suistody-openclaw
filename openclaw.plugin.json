@@ -1,0 +1,53 @@
+{
+  "id": "suistody",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "packageId": {
+        "type": "string",
+        "description": "Deployed Sui Move contract address"
+      },
+      "suiNetwork": {
+        "type": "string",
+        "enum": ["testnet", "devnet", "mainnet"],
+        "default": "testnet",
+        "description": "Sui network to connect to"
+      },
+      "agentPrivateKey": {
+        "type": "string",
+        "description": "Ed25519 private key for the agent"
+      },
+      "sponsorPrivateKey": {
+        "type": "string",
+        "description": "Ed25519 private key for the gas sponsor"
+      },
+      "useSponsoredTx": {
+        "type": "boolean",
+        "default": false,
+        "description": "Use sponsored transactions for agent operations"
+      }
+    },
+    "required": ["packageId"]
+  },
+  "uiHints": {
+    "packageId": {
+      "label": "Package ID",
+      "placeholder": "0x..."
+    },
+    "agentPrivateKey": {
+      "label": "Agent Private Key",
+      "sensitive": true
+    },
+    "sponsorPrivateKey": {
+      "label": "Sponsor Private Key",
+      "sensitive": true
+    },
+    "suiNetwork": {
+      "label": "Sui Network"
+    },
+    "useSponsoredTx": {
+      "label": "Use Sponsored Transactions"
+    }
+  }
+}

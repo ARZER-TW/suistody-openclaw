@@ -1,0 +1,40 @@
+{
+  "name": "@suistody/openclaw",
+  "version": "0.1.0",
+  "description": "OpenClaw plugin for Sui Vault operations via suistody-core",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "suistody-core": "file:../suistody-core",
+    "@mysten/sui": "^1.44.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@sinclair/typebox": "^0.34.0",
+    "@types/node": "^22",
+    "typescript": "^5.9.0",
+    "vitest": "^3.0.0"
+  },
+  "peerDependencies": {
+    "openclaw": ">=2026.0.0"
+  },
+  "peerDependenciesMeta": {
+    "openclaw": {
+      "optional": true
+    }
+  }
+}
