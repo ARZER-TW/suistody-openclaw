@@ -24,6 +24,7 @@ function makeVault(overrides: Partial<VaultData> = {}): VaultData {
     totalSpent: 2_000_000_000n,
     lastTxTime: 1699999000000,
     txCount: 3,
+    status: 0,
     ...overrides,
   };
 }

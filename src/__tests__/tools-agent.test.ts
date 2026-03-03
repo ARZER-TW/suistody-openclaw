@@ -43,6 +43,7 @@ const MOCK_VAULT = {
   totalSpent: 0n,
   lastTxTime: 0,
   txCount: 0,
+  status: 0,
 };
 
 describe("sui_agent_withdraw", () => {

@@ -1,6 +1,6 @@
 {
   "name": "@suistody/openclaw",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "OpenClaw plugin for Sui Vault operations via suistody-core",
   "type": "module",
   "exports": {

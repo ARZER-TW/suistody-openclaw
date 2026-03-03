@@ -13,6 +13,9 @@ import { vaultDepositTool } from "./tools/owner/vault-deposit.js";
 import { vaultWithdrawTool } from "./tools/owner/vault-withdraw.js";
 import { agentAuthorizeTool } from "./tools/owner/agent-authorize.js";
 import { agentRevokeTool } from "./tools/owner/agent-revoke.js";
+import { vaultPauseTool } from "./tools/owner/vault-pause.js";
+import { vaultUnpauseTool } from "./tools/owner/vault-unpause.js";
+import { policyUpdateTool } from "./tools/owner/policy-update.js";
 
 // Agent tools
 import { agentWithdrawTool } from "./tools/agent/agent-withdraw.js";
@@ -28,6 +31,9 @@ const ALL_TOOLS = [
   vaultCreateTool,
   vaultDepositTool,
   vaultWithdrawTool,
+  vaultPauseTool,
+  vaultUnpauseTool,
+  policyUpdateTool,
   agentAuthorizeTool,
   agentRevokeTool,
   // Agent (write)
@@ -49,7 +55,7 @@ const plugin = {
   name: "Suistody Vault Plugin",
   description:
     "AI Agent custody operations on Sui blockchain. Create, manage, and withdraw from policy-controlled Vaults.",
-  version: "0.1.0",
+  version: "0.2.0",
 
   register(api: OpenClawPluginApi): void {
     try {
@@ -77,3 +83,6 @@ export { resolveConfig, getResolvedConfig, _resetConfig } from "./config.js";
 export { getSdk } from "./sdk.js";
 export { ok, err, serializeVault, serializeEvent, bigintReplacer } from "./types.js";
 export type { ToolResult, SerializedVault, SerializedEvent } from "./types.js";
+export { classifyError } from "./errors.js";
+export type { StructuredError, ErrorCategory } from "./errors.js";
+export { isValidSuiAddress, isValidSuiObjectId, validateSuiAddress, validateObjectId, validateAmount, validateActionType } from "./validation.js";

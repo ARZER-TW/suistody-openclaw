@@ -11,6 +11,10 @@
   - `allowedActions`: Whitelisted action types
   - `cooldownMs`: Minimum time between transactions
   - `expiresAt`: Policy expiration timestamp
+- **Vault Status**: Vaults have a status field:
+  - `Active` (0): Normal operation, agents can withdraw
+  - `Paused` (1): Owner has paused the vault, agent withdrawals blocked, owner can still deposit/withdraw
+  - `Locked` (2): Reserved for future use
 - **MIST**: Smallest unit of SUI (1 SUI = 1,000,000,000 MIST). Tools accept SUI amounts and convert internally.
 
 ## Action Types
@@ -37,6 +41,9 @@
 - `sui_vault_withdraw` - Withdraw all funds from a vault
 - `sui_agent_authorize` - Grant an agent access to a vault
 - `sui_agent_revoke` - Revoke an agent's access
+- `sui_vault_pause` - Pause a vault (blocks agent withdrawals)
+- `sui_vault_unpause` - Unpause a paused vault
+- `sui_policy_update` - Update vault policy (budget, limits, actions, cooldown, expiry)
 
 ### Agent Tools (Requires AgentCap)
 - `sui_agent_withdraw` - Withdraw SUI subject to policy limits
@@ -69,6 +76,8 @@
 | Amount exceeds per-tx limit | amount > maxPerTx | Reduce withdrawal amount |
 | Amount exceeds remaining budget | totalSpent + amount > maxBudget | Reduce amount or contact owner |
 | Insufficient vault balance | vault balance < amount | Deposit more or reduce amount |
+| Vault is paused (E_VAULT_PAUSED) | Owner has paused the vault | Wait for owner to unpause, or ask owner to call `sui_vault_unpause` |
+| Invalid status transition (E_INVALID_STATUS) | Attempting invalid state change (e.g., pause an already paused vault) | Check current vault status with `sui_vault_info` first |
 
 ## Security
 

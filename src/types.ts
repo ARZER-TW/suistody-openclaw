@@ -28,6 +28,8 @@ export interface SerializedVault {
   id: string;
   owner: string;
   balanceSui: number;
+  status: number;
+  statusLabel: string;
   policy: {
     maxBudgetSui: number;
     maxPerTxSui: number;
@@ -42,12 +44,20 @@ export interface SerializedVault {
   txCount: number;
 }
 
+const STATUS_LABELS_MAP: Record<number, string> = {
+  0: "Active",
+  1: "Paused",
+  2: "Locked",
+};
+
 export function serializeVault(vault: VaultData): SerializedVault {
   const remainingBudget = vault.policy.maxBudget - vault.totalSpent;
   return {
     id: vault.id,
     owner: vault.owner,
     balanceSui: Number(vault.balance) / 1e9,
+    status: vault.status,
+    statusLabel: STATUS_LABELS_MAP[vault.status] ?? `Unknown(${vault.status})`,
     policy: {
       maxBudgetSui: Number(vault.policy.maxBudget) / 1e9,
       maxPerTxSui: Number(vault.policy.maxPerTx) / 1e9,

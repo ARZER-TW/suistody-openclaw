@@ -17,8 +17,12 @@ export const vaultHistoryTool = {
   ): Promise<ToolResult> {
     try {
       const sdk = await getSdk();
-      const events = await sdk.getVaultEvents(params.vault_id);
-      return ok(events.map(serializeEvent));
+      const result = await sdk.getVaultEvents(params.vault_id);
+      return ok({
+        events: result.events.map(serializeEvent),
+        nextCursor: result.nextCursor,
+        hasMore: result.hasMore,
+      });
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
       return err(`Failed to fetch vault history: ${msg}`);

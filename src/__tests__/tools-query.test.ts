@@ -43,6 +43,7 @@ const MOCK_VAULT = {
   totalSpent: 0n,
   lastTxTime: 0,
   txCount: 0,
+  status: 0,
 };
 
 describe("sui_vault_info", () => {
@@ -136,37 +137,46 @@ describe("sui_vault_history", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("returns serialized events", async () => {
-    vi.mocked(mockSdk.getVaultEvents).mockResolvedValue([
-      {
-        txDigest: "tx1",
-        amount: 500_000_000n,
-        actionType: 0,
-        totalSpent: 500_000_000n,
-        remainingBudget: 9_500_000_000n,
-        txCount: 1,
-        timestamp: 1700000000000,
-      },
-    ]);
+    vi.mocked(mockSdk.getVaultEvents).mockResolvedValue({
+      events: [
+        {
+          txDigest: "tx1",
+          amount: 500_000_000n,
+          actionType: 0,
+          totalSpent: 500_000_000n,
+          remainingBudget: 9_500_000_000n,
+          txCount: 1,
+          timestamp: 1700000000000,
+        },
+      ],
+      nextCursor: null,
+      hasMore: false,
+    });
 
     const result = await vaultHistoryTool.execute("call1", {
       vault_id: "0xvault1",
     });
 
     const data = JSON.parse(result.content[0].text);
-    expect(data).toHaveLength(1);
-    expect(data[0].amountSui).toBe(0.5);
-    expect(data[0].actionLabel).toBe("Swap");
+    expect(data.events).toHaveLength(1);
+    expect(data.events[0].amountSui).toBe(0.5);
+    expect(data.events[0].actionLabel).toBe("Swap");
+    expect(data.hasMore).toBe(false);
   });
 
-  it("returns empty array when no events", async () => {
-    vi.mocked(mockSdk.getVaultEvents).mockResolvedValue([]);
+  it("returns empty events when no events", async () => {
+    vi.mocked(mockSdk.getVaultEvents).mockResolvedValue({
+      events: [],
+      nextCursor: null,
+      hasMore: false,
+    });
 
     const result = await vaultHistoryTool.execute("call2", {
       vault_id: "0x",
     });
 
     const data = JSON.parse(result.content[0].text);
-    expect(data).toEqual([]);
+    expect(data.events).toEqual([]);
   });
 
   it("returns error on failure", async () => {
