@@ -16,11 +16,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Checkout suistody-core (local dependency)
+        uses: actions/checkout@v4
+        with:
+          repository: ARZER-TW/suistody-core
+          path: ../suistody-core
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: npm
+
+      - name: Build suistody-core
+        run: |
+          cd ../suistody-core
+          npm ci
+          npm run build
 
       - name: Install dependencies
         run: npm ci
