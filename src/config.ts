@@ -55,7 +55,7 @@ export function resolveConfig(
     );
   }
 
-  // Set env vars BEFORE any suistody-core import
+  // Set env vars BEFORE any @suistody/core import
   process.env.PACKAGE_ID = parsed.packageId;
   process.env.SUI_NETWORK = parsed.suiNetwork;
   if (parsed.sponsorPrivateKey) {

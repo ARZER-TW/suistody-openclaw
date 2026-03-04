@@ -6,7 +6,7 @@ import {
   serializeVault,
   serializeEvent,
 } from "../types.js";
-import type { VaultData, VaultEvent } from "suistody-core";
+import type { VaultData, VaultEvent } from "@suistody/core";
 
 function makeVault(overrides: Partial<VaultData> = {}): VaultData {
   return {

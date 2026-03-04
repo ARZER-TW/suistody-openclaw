@@ -1,4 +1,4 @@
-import type { VaultData, VaultEvent } from "suistody-core";
+import type { VaultData, VaultEvent } from "@suistody/core";
 
 export interface ToolResult {
   content: Array<{ type: "text"; text: string }>;

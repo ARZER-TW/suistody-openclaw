@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// Mock suistody-core
-vi.mock("suistody-core", () => ({
+// Mock @suistody/core
+vi.mock("@suistody/core", () => ({
   buildCreateVault: vi.fn().mockReturnValue({ serialize: vi.fn() }),
   buildDepositFromGas: vi.fn().mockReturnValue({ serialize: vi.fn() }),
   buildWithdrawAll: vi.fn().mockReturnValue({ serialize: vi.fn() }),
@@ -29,7 +29,7 @@ import { vaultWithdrawTool } from "../tools/owner/vault-withdraw.js";
 import { agentAuthorizeTool } from "../tools/owner/agent-authorize.js";
 import { agentRevokeTool } from "../tools/owner/agent-revoke.js";
 
-const mockSdk = await import("suistody-core");
+const mockSdk = await import("@suistody/core");
 
 describe("sui_vault_create", () => {
   beforeEach(() => vi.clearAllMocks());

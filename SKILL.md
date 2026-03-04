@@ -34,6 +34,8 @@
 - `sui_vault_history` - Fetch withdrawal event history
 - `sui_wallet_balance` - Check SUI balance of any address
 - `sui_agent_caps` - List AgentCaps owned by an agent
+- `sui_token_price` - Get token price from Pyth oracle (SUI/USD, BTC/USD, ETH/USD)
+- `sui_swap_quote` - Get swap quote from Cetus CLMM (estimated output, price impact)
 
 ### Owner Tools (Requires OwnerCap)
 - `sui_vault_create` - Create a new vault with policy
@@ -47,6 +49,7 @@
 
 ### Agent Tools (Requires AgentCap)
 - `sui_agent_withdraw` - Withdraw SUI subject to policy limits
+- `sui_swap_execute` - Execute swap (agent_withdraw + Cetus CLMM swap + transfer in single PTB)
 
 ## Recommended Workflows
 
@@ -61,6 +64,12 @@
 2. Call `sui_vault_create` with initial deposit and policy
 3. Call `sui_agent_authorize` to grant agent access
 4. Share the vault_id and agent_cap_id with the authorized agent
+
+### Executing a swap as an agent:
+1. Call `sui_token_price` to check current SUI/USD price
+2. Call `sui_swap_quote` to get estimated output and price impact
+3. Call `sui_vault_info` to verify sufficient balance and policy allows swap (action type 0)
+4. Call `sui_swap_execute` with vault, agent cap, amount, and minimum output
 
 ### Checking agent permissions:
 1. Call `sui_agent_caps` to list all caps owned by the agent

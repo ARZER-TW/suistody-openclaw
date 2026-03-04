@@ -1,10 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// Mock suistody-core
-vi.mock("suistody-core", () => ({
+// Mock @suistody/core
+vi.mock("@suistody/core", () => ({
   getVault: vi.fn(),
   checkPolicy: vi.fn(),
   buildAgentWithdraw: vi.fn().mockReturnValue({ serialize: vi.fn() }),
+  buildAgentSwap: vi.fn().mockReturnValue({ serialize: vi.fn() }),
+  getSwapQuote: vi.fn(),
+  findPool: vi.fn(),
   executeAgentTransaction: vi.fn(),
   executeSponsoredAgentTransaction: vi.fn(),
   suiToMist: vi.fn((sui: number) => BigInt(Math.round(sui * 1e9))),
@@ -25,8 +28,9 @@ vi.mock("../config.js", () => ({
 }));
 
 import { agentWithdrawTool } from "../tools/agent/agent-withdraw.js";
+import { swapExecuteTool } from "../tools/agent/swap-execute.js";
 
-const mockSdk = await import("suistody-core");
+const mockSdk = await import("@suistody/core");
 
 const MOCK_VAULT = {
   id: "0xvault1",
@@ -210,5 +214,124 @@ describe("sui_agent_withdraw", () => {
     expect(agentWithdrawTool.name).toBe("sui_agent_withdraw");
     expect(agentWithdrawTool.label).toBe("Sui Agent Withdraw");
     expect(agentWithdrawTool.description).toContain("policy");
+  });
+});
+
+describe("sui_swap_execute", () => {
+  const MOCK_POOL = {
+    poolId: "0xpool1",
+    dexPackageId: "0xdex",
+    globalConfigId: "0xconfig",
+    coinTypeA: "0x2::sui::SUI",
+    coinTypeB: "0xusdc::usdc::USDC",
+    a2b: true,
+    dex: "cetus",
+  };
+
+  const MOCK_QUOTE = {
+    amountIn: 500_000_000n,
+    estimatedAmountOut: 450_000n,
+    minAmountOut: 447_750n,
+    priceImpact: 0,
+    route: "cetus",
+    tokenIn: "0x2::sui::SUI",
+    tokenOut: "0xusdc::usdc::USDC",
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockConfig.useSponsoredTx = false;
+  });
+
+  it("executes swap successfully", async () => {
+    vi.mocked(mockSdk.getVault).mockResolvedValue(MOCK_VAULT);
+    vi.mocked(mockSdk.checkPolicy).mockReturnValue({
+      allowed: true,
+      reason: "OK",
+    });
+    vi.mocked(mockSdk.getSwapQuote).mockResolvedValue(MOCK_QUOTE);
+    vi.mocked(mockSdk.findPool).mockResolvedValue(MOCK_POOL);
+    vi.mocked(mockSdk.executeAgentTransaction).mockResolvedValue("swap_digest");
+
+    const result = await swapExecuteTool.execute("call1", {
+      vault_id: "0xvault1",
+      agent_cap_id: "0xcap1",
+      amount_in: 0.5,
+    });
+
+    const data = JSON.parse(result.content[0].text);
+    expect(data.success).toBe(true);
+    expect(data.txDigest).toBe("swap_digest");
+    expect(data.swapped).toBeDefined();
+    expect(data.swapped.amountIn).toBe(0.5);
+  });
+
+  it("returns error when policy check fails", async () => {
+    vi.mocked(mockSdk.getVault).mockResolvedValue(MOCK_VAULT);
+    vi.mocked(mockSdk.checkPolicy).mockReturnValue({
+      allowed: false,
+      reason: "Swap action not allowed",
+    });
+
+    const result = await swapExecuteTool.execute("call2", {
+      vault_id: "0xvault1",
+      agent_cap_id: "0xcap1",
+      amount_in: 0.5,
+    });
+
+    const data = JSON.parse(result.content[0].text);
+    expect(data.error).toContain("Swap action not allowed");
+    expect(mockSdk.buildAgentSwap).not.toHaveBeenCalled();
+  });
+
+  it("uses sponsored tx when configured", async () => {
+    mockConfig.useSponsoredTx = true;
+    vi.mocked(mockSdk.getVault).mockResolvedValue(MOCK_VAULT);
+    vi.mocked(mockSdk.checkPolicy).mockReturnValue({
+      allowed: true,
+      reason: "OK",
+    });
+    vi.mocked(mockSdk.getSwapQuote).mockResolvedValue(MOCK_QUOTE);
+    vi.mocked(mockSdk.findPool).mockResolvedValue(MOCK_POOL);
+    vi.mocked(mockSdk.executeSponsoredAgentTransaction).mockResolvedValue(
+      "sponsored_swap_digest"
+    );
+
+    const result = await swapExecuteTool.execute("call3", {
+      vault_id: "0xvault1",
+      agent_cap_id: "0xcap1",
+      amount_in: 0.5,
+    });
+
+    const data = JSON.parse(result.content[0].text);
+    expect(data.sponsored).toBe(true);
+    expect(mockSdk.executeSponsoredAgentTransaction).toHaveBeenCalled();
+  });
+
+  it("returns error on execution failure", async () => {
+    vi.mocked(mockSdk.getVault).mockResolvedValue(MOCK_VAULT);
+    vi.mocked(mockSdk.checkPolicy).mockReturnValue({
+      allowed: true,
+      reason: "OK",
+    });
+    vi.mocked(mockSdk.getSwapQuote).mockResolvedValue(MOCK_QUOTE);
+    vi.mocked(mockSdk.findPool).mockResolvedValue(MOCK_POOL);
+    vi.mocked(mockSdk.executeAgentTransaction).mockRejectedValue(
+      new Error("Insufficient liquidity")
+    );
+
+    const result = await swapExecuteTool.execute("call4", {
+      vault_id: "0xvault1",
+      agent_cap_id: "0xcap1",
+      amount_in: 0.5,
+    });
+
+    const data = JSON.parse(result.content[0].text);
+    expect(data.error).toContain("Insufficient liquidity");
+  });
+
+  it("has correct tool metadata", () => {
+    expect(swapExecuteTool.name).toBe("sui_swap_execute");
+    expect(swapExecuteTool.description).toContain("swap");
   });
 });

@@ -1,12 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// Mock suistody-core
-vi.mock("suistody-core", () => ({
+// Mock @suistody/core
+vi.mock("@suistody/core", () => ({
   getVault: vi.fn(),
   getOwnedVaults: vi.fn(),
   getVaultEvents: vi.fn(),
   getAgentCaps: vi.fn(),
   getSuiClient: vi.fn(),
+  getSuiUsdPrice: vi.fn(),
+  getTokenPrice: vi.fn(),
 }));
 
 // Mock config
@@ -25,8 +27,9 @@ import { vaultsListTool } from "../tools/query/vaults-list.js";
 import { vaultHistoryTool } from "../tools/query/vault-history.js";
 import { walletBalanceTool } from "../tools/query/wallet-balance.js";
 import { agentCapsTool } from "../tools/query/agent-caps.js";
+import { tokenPriceTool } from "../tools/query/token-price.js";
 
-const mockSdk = await import("suistody-core");
+const mockSdk = await import("@suistody/core");
 
 const MOCK_VAULT = {
   id: "0xvault1",
@@ -282,5 +285,61 @@ describe("sui_agent_caps", () => {
 
     const data = JSON.parse(result.content[0].text);
     expect(data.error).toContain("Fetch error");
+  });
+});
+
+describe("sui_token_price", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns SUI/USD price when no feed_id provided", async () => {
+    vi.mocked(mockSdk.getSuiUsdPrice).mockResolvedValue({
+      price: 0.90741,
+      confidence: 0.00075,
+      timestamp: 1700000000000,
+      source: "pyth",
+    });
+
+    const result = await tokenPriceTool.execute("call1", {});
+
+    const data = JSON.parse(result.content[0].text);
+    expect(data.pair).toBe("SUI/USD");
+    expect(data.priceUsd).toBeCloseTo(0.90741, 4);
+    expect(data.confidence).toBeCloseTo(0.00075, 5);
+    expect(data.source).toBe("pyth");
+    expect(data.timestamp).toBeDefined();
+  });
+
+  it("returns price for custom feed_id", async () => {
+    vi.mocked(mockSdk.getTokenPrice).mockResolvedValue({
+      price: 300.5,
+      confidence: 0.15,
+      timestamp: 1700000000000,
+      source: "pyth",
+    });
+
+    const result = await tokenPriceTool.execute("call2", {
+      feed_id: "0xabc123def456",
+    });
+
+    const data = JSON.parse(result.content[0].text);
+    expect(data.pair).toContain("feed:");
+    expect(data.priceUsd).toBe(300.5);
+    expect(mockSdk.getTokenPrice).toHaveBeenCalledWith("0xabc123def456");
+  });
+
+  it("returns error on failure", async () => {
+    vi.mocked(mockSdk.getSuiUsdPrice).mockRejectedValue(
+      new Error("Hermes API error")
+    );
+
+    const result = await tokenPriceTool.execute("call3", {});
+
+    const data = JSON.parse(result.content[0].text);
+    expect(data.error).toContain("Hermes API error");
+  });
+
+  it("has correct tool name", () => {
+    expect(tokenPriceTool.name).toBe("sui_token_price");
+    expect(tokenPriceTool.description).toContain("price");
   });
 });

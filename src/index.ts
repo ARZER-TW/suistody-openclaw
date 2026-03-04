@@ -6,6 +6,8 @@ import { vaultsListTool } from "./tools/query/vaults-list.js";
 import { vaultHistoryTool } from "./tools/query/vault-history.js";
 import { walletBalanceTool } from "./tools/query/wallet-balance.js";
 import { agentCapsTool } from "./tools/query/agent-caps.js";
+import { tokenPriceTool } from "./tools/query/token-price.js";
+import { swapQuoteTool } from "./tools/query/swap-quote.js";
 
 // Owner tools
 import { vaultCreateTool } from "./tools/owner/vault-create.js";
@@ -19,6 +21,7 @@ import { policyUpdateTool } from "./tools/owner/policy-update.js";
 
 // Agent tools
 import { agentWithdrawTool } from "./tools/agent/agent-withdraw.js";
+import { swapExecuteTool } from "./tools/agent/swap-execute.js";
 
 const ALL_TOOLS = [
   // Query (read-only)
@@ -27,6 +30,8 @@ const ALL_TOOLS = [
   vaultHistoryTool,
   walletBalanceTool,
   agentCapsTool,
+  tokenPriceTool,
+  swapQuoteTool,
   // Owner (write)
   vaultCreateTool,
   vaultDepositTool,
@@ -38,6 +43,7 @@ const ALL_TOOLS = [
   agentRevokeTool,
   // Agent (write)
   agentWithdrawTool,
+  swapExecuteTool,
 ];
 
 export interface OpenClawPluginApi {
