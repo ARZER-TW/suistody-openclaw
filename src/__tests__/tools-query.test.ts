@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 vi.mock("@suistody/core", () => ({
   getVault: vi.fn(),
   getOwnedVaults: vi.fn(),
+  getOwnerCaps: vi.fn(),
   getVaultEvents: vi.fn(),
   getAgentCaps: vi.fn(),
   getSuiClient: vi.fn(),
@@ -98,7 +99,10 @@ describe("sui_vault_info", () => {
 describe("sui_vaults_list", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("returns list of serialized vaults", async () => {
+  it("returns list of serialized vaults with ownerCapId", async () => {
+    vi.mocked(mockSdk.getOwnerCaps).mockResolvedValue([
+      { id: "0xowner_cap_1", vaultId: "0xvault1" },
+    ]);
     vi.mocked(mockSdk.getOwnedVaults).mockResolvedValue([MOCK_VAULT]);
 
     const result = await vaultsListTool.execute("call1", {
@@ -109,10 +113,11 @@ describe("sui_vaults_list", () => {
     expect(Array.isArray(data)).toBe(true);
     expect(data).toHaveLength(1);
     expect(data[0].id).toBe("0xvault1");
+    expect(data[0].ownerCapId).toBe("0xowner_cap_1");
   });
 
   it("returns empty array when no vaults", async () => {
-    vi.mocked(mockSdk.getOwnedVaults).mockResolvedValue([]);
+    vi.mocked(mockSdk.getOwnerCaps).mockResolvedValue([]);
 
     const result = await vaultsListTool.execute("call2", {
       owner_address: "0xnobody",
@@ -123,7 +128,7 @@ describe("sui_vaults_list", () => {
   });
 
   it("returns error on failure", async () => {
-    vi.mocked(mockSdk.getOwnedVaults).mockRejectedValue(
+    vi.mocked(mockSdk.getOwnerCaps).mockRejectedValue(
       new Error("Network error")
     );
 

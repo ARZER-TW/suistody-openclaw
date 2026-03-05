@@ -41,11 +41,32 @@ export const agentAuthorizeTool = {
         agentKeypair: config.agentKeypair,
       });
 
+      // Parse transaction to extract created AgentCap ID
+      const client = sdk.getSuiClient();
+      const txDetails = await client.waitForTransaction({
+        digest,
+        options: { showObjectChanges: true },
+      });
+
+      const packageId = sdk.getPackageId();
+      let agentCapId: string | undefined;
+
+      for (const change of txDetails.objectChanges ?? []) {
+        if (
+          change.type === "created" &&
+          change.objectType.includes(`${packageId}::agent_vault::AgentCap`)
+        ) {
+          agentCapId = change.objectId;
+          break;
+        }
+      }
+
       return ok({
         success: true,
         txDigest: digest,
         vaultId: params.vault_id,
         agentAddress: params.agent_address,
+        agentCapId: agentCapId ?? "unknown",
       });
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);

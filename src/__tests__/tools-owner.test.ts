@@ -1,5 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+const mockWaitForTransaction = vi.fn().mockResolvedValue({
+  objectChanges: [
+    { type: "created", objectType: "0xpkg::agent_vault::Vault", objectId: "0xvault_created" },
+    { type: "created", objectType: "0xpkg::agent_vault::OwnerCap", objectId: "0xowner_cap_created" },
+  ],
+});
+
 // Mock @suistody/core
 vi.mock("@suistody/core", () => ({
   buildCreateVault: vi.fn().mockReturnValue({ serialize: vi.fn() }),
@@ -9,6 +16,8 @@ vi.mock("@suistody/core", () => ({
   buildRevokeAgentCap: vi.fn().mockReturnValue({ serialize: vi.fn() }),
   executeAgentTransaction: vi.fn(),
   suiToMist: vi.fn((sui: number) => BigInt(Math.round(sui * 1e9))),
+  getSuiClient: vi.fn().mockReturnValue({ waitForTransaction: (...args: unknown[]) => mockWaitForTransaction(...args) }),
+  getPackageId: vi.fn().mockReturnValue("0xpkg"),
 }));
 
 // Mock config
@@ -187,6 +196,11 @@ describe("sui_agent_authorize", () => {
     vi.mocked(mockSdk.executeAgentTransaction).mockResolvedValue(
       "auth_digest"
     );
+    mockWaitForTransaction.mockResolvedValueOnce({
+      objectChanges: [
+        { type: "created", objectType: "0xpkg::agent_vault::AgentCap", objectId: "0xagent_cap_new" },
+      ],
+    });
 
     const result = await agentAuthorizeTool.execute("call1", {
       vault_id: "0xv",
@@ -197,6 +211,7 @@ describe("sui_agent_authorize", () => {
     const data = JSON.parse(result.content[0].text);
     expect(data.success).toBe(true);
     expect(data.agentAddress).toBe("0xnew_agent");
+    expect(data.agentCapId).toBe("0xagent_cap_new");
   });
 
   it("returns error on failure", async () => {

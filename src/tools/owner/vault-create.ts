@@ -8,7 +8,7 @@ export const vaultCreateTool = {
   name: "sui_vault_create",
   label: "Sui Vault Create",
   description:
-    "Create a new Sui Vault with initial deposit and policy. This is an owner-only operation. The vault will be created with the agent as the transaction sender.",
+    "Create a new Sui Vault with initial deposit and policy. This is an owner-only operation. The vault will be created with the agent as the transaction sender. Returns the Vault ID and OwnerCap ID needed for subsequent operations.",
   parameters: Type.Object({
     deposit_sui: Type.Number({
       description: "Initial deposit amount in SUI",
@@ -68,9 +68,32 @@ export const vaultCreateTool = {
         agentKeypair: config.agentKeypair,
       });
 
+      // Parse transaction to extract created Vault ID and OwnerCap ID
+      const client = sdk.getSuiClient();
+      const txDetails = await client.waitForTransaction({
+        digest,
+        options: { showObjectChanges: true },
+      });
+
+      const packageId = sdk.getPackageId();
+      let vaultId: string | undefined;
+      let ownerCapId: string | undefined;
+
+      for (const change of txDetails.objectChanges ?? []) {
+        if (change.type !== "created") continue;
+        if (change.objectType.includes(`${packageId}::agent_vault::Vault`)) {
+          vaultId = change.objectId;
+        }
+        if (change.objectType.includes(`${packageId}::agent_vault::OwnerCap`)) {
+          ownerCapId = change.objectId;
+        }
+      }
+
       return ok({
         success: true,
         txDigest: digest,
+        vaultId: vaultId ?? "unknown",
+        ownerCapId: ownerCapId ?? "unknown",
         depositSui: params.deposit_sui,
         policy: {
           maxBudgetSui: params.max_budget_sui,

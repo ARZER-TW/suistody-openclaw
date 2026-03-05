@@ -19,7 +19,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@suistody/core": "file:../suistody-core",
+    "@suistody/core": "^0.4.0",
     "@mysten/sui": "^1.44.0",
     "zod": "^3.23.0"
   },
