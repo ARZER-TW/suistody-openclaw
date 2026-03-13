@@ -8,7 +8,7 @@ https://github.com/ARZER-TW/suistody-openclaw
 
 OpenClaw plugin (v0.2.0) wrapping @suistody/core SDK into 17 AI agent tools for Sui vault operations. Provides structured tool interfaces for query, owner, and agent operations with input validation (zod) and error classification.
 
-- Plugin: v0.2.0, 1567 lines across 20 source files
+- Plugin: v0.2.0, ~1643 lines across 20 source files
 - Package: @suistody/openclaw
 - Tools: 17 (7 query + 8 owner + 2 agent)
 - Tests: 61 tests across 5 test files
@@ -121,7 +121,7 @@ All tools return `ToolResult`:
 
 | Package | Version | Role |
 |---------|---------|------|
-| `@suistody/core` | `file:../suistody-core` | Core SDK (local file ref) |
+| `@suistody/core` | `^0.4.0` | Core SDK (published to npm as @suistody/core) |
 | `@mysten/sui` | `^1.44.0` | Sui blockchain SDK (v1) |
 | `zod` | `^3.23.0` | Runtime input validation |
 
